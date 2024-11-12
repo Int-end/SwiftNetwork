@@ -30,7 +30,7 @@ public protocol Endpoint {
     ///
     /// - Parameters:
     ///   - completion: A closure that returns a `Result` containing the decoded object or an error.
-    func performRequest<T: Decodable>(completion: @escaping @Sendable (Result<T, NetworkError>) -> Void)
+    func perform<T: Decodable>(request completion: @escaping @Sendable (Result<T, NetworkError>) -> Void)
 }
 
 /// Default Implementation for Endpoint to simplify endpoint creation and network request handling.
@@ -65,7 +65,7 @@ public extension Endpoint {
      
      - Important: This method uses a background thread for the network request and should be called from the main thread when updating the UI with the results.
      */
-    func performRequest<T: Decodable>(completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
+    func perform<T: Decodable>(request completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
         guard let url = buildURL() else {
             // Return an error if the URL is invalid
             completion(.failure(.networkFailure(NSError(domain: "Invalid URL", code: -1, userInfo: nil))))

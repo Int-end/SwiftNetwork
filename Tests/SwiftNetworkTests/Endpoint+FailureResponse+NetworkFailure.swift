@@ -14,7 +14,7 @@ extension EndpointTests {
         let endpoint = MockEndpoint(path: "/users", environment: environment)
         let expectation = self.expectation(description: "Perform request completes")
         
-        endpoint.performRequest { (result: Result<[String: String], NetworkError>) in
+        endpoint.perform { (result: Result<[String: String], NetworkError>) in
             switch result {
             case .success:
                 XCTFail("Request should fail with network error.")
