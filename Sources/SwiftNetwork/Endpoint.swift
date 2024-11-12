@@ -76,7 +76,7 @@ public extension Endpoint {
         let request: URLRequest = {
             var request = URLRequest(url: url)
             request.httpMethod = method.rawValue
-            request.allHTTPHeaderFields = headers ?? defaultHeaders()
+            request.allHTTPHeaderFields = defaultHeaders()?.merging(headers ?? [:]) { (_, new) in new }
             
             // Set body parameters if available
             if let bodyParameters = bodyParameters {
