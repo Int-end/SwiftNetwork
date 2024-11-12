@@ -20,4 +20,13 @@ public enum NetworkError: Error {
     
     /// Failed to decode the response data into the expected model.
     case decodingError(Error)
+    
+    public var description: String {
+        switch self {
+        case .networkFailure(let error): return "Network Failure: \(error.localizedDescription)"
+        case .invalidRequestBody: return "Invalid request body"
+        case .noData: return "No data received from the server"
+        case .decodingError(let error): return "Decoding error: \(error.localizedDescription)"
+        }
+    }
 }
