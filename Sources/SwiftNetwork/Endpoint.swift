@@ -40,7 +40,9 @@ public extension Endpoint {
     ///
     /// - Returns: A `URL?` representing the complete URL for the endpoint, or `nil` if the URL is invalid.
     func buildURL() -> URL? {
-        return URL(string: environment.baseURL + path)
+        var components = URLComponents(string: environment.baseURL)
+        components?.path += path
+        return components?.url
     }
 
     /// Provides default headers for the request, including the `Authorization` header if an API key is available.
