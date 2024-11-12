@@ -85,11 +85,13 @@ public extension Endpoint {
             
             return request
         }()
-
+        
         // Check if the httpBody is nil, and return early if so
-        if request.httpBody == nil {
-            completion(.failure(.invalidRequestBody))
-            return
+        if method == .POST || method == .PUT {
+            if request.httpBody == nil {
+                completion(.failure(.invalidRequestBody))
+                return
+            }
         }
         
         // Perform the network request asynchronously
