@@ -80,15 +80,14 @@ public extension Endpoint {
             request.httpMethod = method.rawValue
             request.allHTTPHeaderFields = defaultHeaders()?.merging(headers ?? [:]) { (_, new) in new }
             
-            // Set body parameters if available
-            if let bodyParameters = bodyParameters {
+            if let bodyParameters = bodyParameters, (method == .POST || method == .PUT) {
                 request.httpBody = try? JSONSerialization.data(withJSONObject: bodyParameters, options: .prettyPrinted)
             }
             
             return request
         }()
         
-        // Check if the httpBody is nil, and return early if so
+        // Check if the httpBody is nil if the HTTP Method is POST OR PUT, skip early.
         if method == .POST || method == .PUT {
             if request.httpBody == nil {
                 completion(.failure(.invalidRequestBody))
@@ -104,33 +103,16 @@ public extension Endpoint {
             }
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                completion(.failure(.networkFailure(NSError(domain: "Invalid Response",
-                                                              code: -1,
-                                                          userInfo: nil))))
+                completion(.failure(.networkFailure(NSError(domain: "Invalid Response", code: -1, userInfo: nil))))
+                return
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let errorDomain = (400...499).contains(httpResponse.statusCode) ? "Client Error" : "Server Error"
+                completion(.failure(.networkFailure(NSError(domain: errorDomain, code: httpResponse.statusCode, userInfo: nil))))
                 return
             }
             
-            switch httpResponse.statusCode {
-            case 200...299:
-                break
-            case 400...499:
-                completion(.failure(.networkFailure(NSError(domain: "Client Error",
-                                                            code: httpResponse.statusCode,
-                                                            userInfo: nil))))
-                return
-            case 500...599:
-                completion(.failure(.networkFailure(NSError(domain: "Server Error",
-                                                            code: httpResponse.statusCode,
-                                                            userInfo: nil))))
-                return
-            default:
-                completion(.failure(.networkFailure(NSError(domain: "Unknown Error",
-                                                            code: httpResponse.statusCode,
-                                                            userInfo: nil))))
-                return
-            }
-            
-            // Check if data was received, otherwise return an error
             guard let data = data else {
                 completion(.failure(.noData))
                 return
