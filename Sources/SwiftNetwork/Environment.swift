@@ -8,19 +8,34 @@
 import Foundation
 
 /// Protocol defining environment configuration properties such as the base URL and API key for the environment.
+///
+/// Conform to this protocol to define the configuration for different environments (e.g., Development, Production).
+///
+/// Example usage:
+/// ```
+/// struct MyEnvironment: EnvironmentConfigurable {
+///     var baseURL: String = "https://api.example.com"
+///     var apiKey: String = "your_api_key"
+/// }
+/// ```
 public protocol EnvironmentConfigurable {
     /// The base URL for all API requests, usually the root URL of the API service.
     var baseURL: String { get }
-    
+
     /// The API key to be included in the request headers for authentication or authorization.
     var apiKey: String { get }
 }
 
 /// Represents the environment configuration, which includes the base URL and API key.
+///
+/// Example:
+/// ```
+/// let environment = Environment(baseURL: "https://api.example.com", apiKey: "your_api_key")
+/// ```
 public struct Environment: EnvironmentConfigurable {
     public let baseURL: String
     public let apiKey: String
-    
+
     /// Initializes a new `Environment` object with the given base URL and API key.
     ///
     /// - Parameters:

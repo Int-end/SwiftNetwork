@@ -10,34 +10,54 @@ import Foundation
 /// A protocol for defining network endpoints that can perform network requests.
 ///
 /// Conform to this protocol to create custom endpoints with the necessary HTTP method, path, headers, and body parameters.
+///
+/// Example usage:
+/// ```
+/// struct MyEndpoint: Endpoint {
+///     var path: String = "/myapi/endpoint"
+///     var method: HTTPMethod = .GET
+///     var headers: [String: String]? = ["Authorization": "Bearer token"]
+///     var parameters: [String: QueryStringConvertible]? = ["key": "value"]
+///     var environment: EnvironmentConfigurable
+///     var request: URLRequest? = nil
+/// }
+/// ```
 public protocol Endpoint {
     /// The path of the API endpoint, typically appended to the base URL to form the full URL.
     var path: String { get }
-    
+
     /// The HTTP method to be used for the request (e.g., GET, POST, PUT, DELETE).
     var method: HTTPMethod { get }
-    
+
     /// The headers to be included in the request. Defaults to nil, which means default headers are used.
     var headers: [String: String]? { get }
-    
+
     /// The body parameters to be included in the request, if applicable. Defaults to nil.
     var parameters: [String: QueryStringConvertible]? { get }
-    
+
     /// The environment configuration, including base URL and API key.
     var environment: EnvironmentConfigurable { get }
-    
-    /// The URL Request
-    /// > Warning: If the request has a value, other Endpoint items will not be used. We will directly perform the operation with this request.
+
+    /// The URLRequest
+    ///
+    /// - Warning: If the request has a value, other Endpoint items will not be used. The request will be performed directly.
     var request: URLRequest? { get }
 }
 
-extension Endpoint {
+public extension Endpoint {
+    /// Default method for GET requests.
     var method: HTTPMethod { .GET }
+
+    /// Default headers are nil, which will be merged with custom headers if provided.
     var headers: [String: String]? { nil }
+
+    /// Default parameters are nil.
     var parameters: [String: QueryStringConvertible]? { nil }
+
+    /// Default value for request is nil.
     var request: URLRequest? { nil }
     
-    // The URL Components
+    /// Constructs URL components based on the endpoint's base URL and the path.
     var components: URLComponents? {
         var components = URLComponents(string: environment.baseURL)
         components?.path += path
@@ -52,9 +72,9 @@ extension Endpoint {
         return components
     }
     
-    /// The URL from the base URL and the endpoint path.
+    /// Constructs the full URL from base URL and the endpoint's path.
     ///
-    /// - Returns: A `URL?` representing the complete URL for the endpoint, or `nil` if the URL is invalid.
+    /// - Returns: The complete URL for the endpoint, or `nil` if the URL is invalid.
     var url: URL? {
         components?.url
     }
@@ -69,7 +89,10 @@ extension Endpoint {
         }
         return defaultHeaders
     }
-    
+
+    /// Constructs the `URLRequest` to be performed.
+    ///
+    /// - Returns: A `Result` containing either a `URLRequest` or a `NetworkError` indicating failure.
     var buildRequest: Result<URLRequest, NetworkError> {
         guard let url = url else {
             // Return an error if the URL is invalid
