@@ -10,8 +10,7 @@
 struct SignInEndpoint: Requestable {
     let path: String = "/auth/signin"
     let method: HTTPMethod = .POST
-    let parameters: [String: Any]?
-    
+    let parameters: [String: QueryStringConvertible]?
     let environment: EnvironmentConfigurable
     
     init(environment: EnvironmentConfigurable, body parameters: [String: QueryStringConvertible]) {

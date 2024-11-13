@@ -10,7 +10,7 @@ import Foundation
 /// Represents network errors that can occur during an API request.
 ///
 /// Example usage:
-/// ```
+/// ```Swift
 /// let error: NetworkError = .networkFailure(error)
 /// ```
 public enum NetworkError: Error {

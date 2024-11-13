@@ -10,7 +10,7 @@ import Foundation
 /// HTTP methods supported by the API. These methods define how data is sent to and from the server.
 ///
 /// Example usage:
-/// ```
+/// ```Swift
 /// let method = HTTPMethod.GET
 /// ```
 public enum HTTPMethod: String {

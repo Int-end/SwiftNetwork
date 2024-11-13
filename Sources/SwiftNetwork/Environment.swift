@@ -12,10 +12,10 @@ import Foundation
 /// Conform to this protocol to define the configuration for different environments (e.g., Development, Production).
 ///
 /// Example usage:
-/// ```
+/// ```Swift
 /// struct MyEnvironment: EnvironmentConfigurable {
-///     var baseURL: String = "https://api.example.com"
-///     var apiKey: String = "your_api_key"
+///     let baseURL: String = "https://api.example.com"
+///     let apiKey: String = "your_api_key"
 /// }
 /// ```
 public protocol EnvironmentConfigurable {

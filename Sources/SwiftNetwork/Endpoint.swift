@@ -12,14 +12,17 @@ import Foundation
 /// Conform to this protocol to create custom endpoints with the necessary HTTP method, path, headers, and body parameters.
 ///
 /// Example usage:
-/// ```
-/// struct MyEndpoint: Endpoint {
-///     var path: String = "/myapi/endpoint"
-///     var method: HTTPMethod = .GET
-///     var headers: [String: String]? = ["Authorization": "Bearer token"]
-///     var parameters: [String: QueryStringConvertible]? = ["key": "value"]
-///     var environment: EnvironmentConfigurable
-///     var request: URLRequest? = nil
+/// ```Swift
+/// struct SignInEndpoint: Requestable {
+///     let path: String = "/auth/signin"
+///     let method: HTTPMethod = .POST
+///     let parameters: [String: QueryStringConvertible]?
+///     let environment: EnvironmentConfigurable
+///
+///     init(environment: EnvironmentConfigurable, body parameters: [String: QueryStringConvertible]) {
+///         self.parameters = parameters
+///         self.environment = environment
+///     }
 /// }
 /// ```
 public protocol Endpoint {
