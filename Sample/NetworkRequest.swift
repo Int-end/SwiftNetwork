@@ -14,8 +14,7 @@ struct NetworkRequest {
 
         // 3. Perform a Request
         let signIn = SignInEndpoint(environment: environment)
-
-        signIn.performRequest { (result: Result<User, NetworkError>) in
+        signIn.perform { (result: Result<User, NetworkError>) in
             switch result {
             case .success(let user):
                 print("User signed in: \(user)")
