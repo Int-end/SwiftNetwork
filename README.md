@@ -35,12 +35,12 @@ dependencies: [
 
 ### 1. Create a Custom Endpoint
 
-You can create a custom API endpoint by conforming to the `Endpoint` protocol. Define your endpoint's HTTP method, path, headers, and body parameters.
+You can create a custom API endpoint by conforming to the `Requestable` protocol. Define your endpoint's HTTP method, path, headers, and body parameters.
 
 ```swift
 import SwiftNetwork
 
-struct SignInEndpoint: Endpoint {
+struct SignInEndpoint: Requestable {
     var path: String = "/auth/signin"
     var method: HTTPMethod = .POST
     var headers: [String: String]? = nil
@@ -70,9 +70,20 @@ let environment = Environment(baseURL: "https://api.example.com", apiKey: "your-
 Once you have defined your endpoint and environment, you can call the `performRequest` method to make the network request and decode the response.
 
 ```swift
-let signInEndpoint = SignInEndpoint(environment: environment)
+let signIn = SignInEndpoint(environment: environment)
 
-signInEndpoint.performRequest { (result: Result<User, NetworkError>) in
+signIn.perform { (result: Result<User, NetworkError>) in
+    switch result {
+    case .success(let user):
+        print("User signed in: \(user)")
+    case .failure(let error):
+        print("Error occurred: \(error)")
+    }
+}
+
+// OR
+
+signIn.fetch { (result: Result<User, NetworkError>) in
     switch result {
     case .success(let user):
         print("User signed in: \(user)")

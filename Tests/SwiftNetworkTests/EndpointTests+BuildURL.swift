@@ -10,7 +10,7 @@ import XCTest
 
 class EndpointTests: XCTestCase {
 
-    struct MockEndpoint: Endpoint {
+    struct MockEndpoint: Requestable {
         var path: String
         var method: HTTPMethod = .GET
         var environment: EnvironmentConfigurable
