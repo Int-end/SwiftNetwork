@@ -8,17 +8,14 @@
 // 1. Create a Custom Endpoint
 // You can create a custom API endpoint by conforming to the `Endpoint` protocol. Define your endpoint's HTTP method, path, headers, and body parameters.
 struct SignInEndpoint: Endpoint {
-    var path: String = "/auth/signin"
-    var method: HTTPMethod = .POST
-    var headers: [String: String]? = nil
-    var bodyParameters: [String: Any]? = [
-        "username": "user",
-        "password": "password123"
-    ]
+    let path: String = "/auth/signin"
+    let method: HTTPMethod = .POST
+    let parameters: [String: Any]?
     
-    var environment: EnvironmentConfigurable
+    let environment: EnvironmentConfigurable
     
-    init(environment: EnvironmentConfigurable) {
+    init(environment: EnvironmentConfigurable, body parameters: [String: Any]) {
+        self.parameters = parameters
         self.environment = environment
     }
 }

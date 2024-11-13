@@ -44,7 +44,7 @@ struct SignInEndpoint: Endpoint {
     var path: String = "/auth/signin"
     var method: HTTPMethod = .POST
     var headers: [String: String]? = nil
-    var bodyParameters: [String: Any]? = [
+    var parameters: [String: Any]? = [
         "username": "user",
         "password": "password123"
     ]

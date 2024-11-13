@@ -21,11 +21,22 @@ public protocol Endpoint {
     var headers: [String: String]? { get }
     
     /// The body parameters to be included in the request, if applicable. Defaults to nil.
-    var bodyParameters: [String: Any]? { get }
+    var parameters: [String: Any]? { get }
     
     /// The environment configuration, including base URL and API key.
     var environment: EnvironmentConfigurable { get }
-
+    
+    /// The URL from the base URL and the endpoint path.
+    var url: URL? { get }
+    
+    /// The URL Request
+    /// > Warning: If the request has a value, other Endpoint items will not be used. We will directly perform the operation with this request.
+    var request: URLRequest? { get }
+    
+    /// Configures URLComponents with base URL and path
+    /// > Warning: If components has a value, the URL will be built from it. You can override this using the url property.
+    var components: URLComponents? { get }
+    
     /// Performs the network request and decodes the response into a specified type.
     ///
     /// - Parameters:
@@ -35,16 +46,39 @@ public protocol Endpoint {
 
 /// Default Implementation for Endpoint to simplify endpoint creation and network request handling.
 public extension Endpoint {
+    var method: HTTPMethod { .GET }
+    var headers: [String: String]? { nil }
+    var parameters: [String: Any]? { nil }
     
-    /// Builds the complete URL from the base URL and the endpoint path.
+    /// The URL from the base URL and the endpoint path.
     ///
     /// - Returns: A `URL?` representing the complete URL for the endpoint, or `nil` if the URL is invalid.
-    func buildURL() -> URL? {
+    var url: URL? {
+        components?.url
+    }
+    
+    // The URL Components
+    var components: URLComponents? {
         var components = URLComponents(string: environment.baseURL)
         components?.path += path
-        return components?.url
+        return components
     }
-
+    
+    var request: URLRequest? {
+        if let url = url {
+            var request = URLRequest(url: url)
+            request.httpMethod = method.rawValue
+            request.allHTTPHeaderFields = defaultHeaders()?.merging(headers ?? [:]) { (_, new) in new }
+            
+            if let parameters = parameters, (method == .POST || method == .PUT) {
+                request.httpBody = try? JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
+            }
+            return request
+        }
+        
+        return nil
+    }
+    
     /// Provides default headers for the request, including the `Authorization` header if an API key is available.
     ///
     /// - Returns: A dictionary of headers to be included in the request.
@@ -55,7 +89,7 @@ public extension Endpoint {
         }
         return defaultHeaders
     }
-
+    
     /**
      Performs the network request and decodes the response into a specified type.
      
@@ -63,29 +97,22 @@ public extension Endpoint {
      If an error occurs during the request or decoding, it calls the completion handler with an error result.
      
      - Parameters:
-         - completion: A closure that takes a `Result<T, NetworkError>` where `T` is the expected response model type.
+     - completion: A closure that takes a `Result<T, NetworkError>` where `T` is the expected response model type.
      
      - Important: This method uses a background thread for the network request and should be called from the main thread when updating the UI with the results.
      */
     func perform<T: Decodable>(request completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
-        guard let url = buildURL() else {
-            // Return an error if the URL is invalid
-            completion(.failure(.networkFailure(NSError(domain: "Invalid URL", code: -1, userInfo: nil))))
-            return
-        }
-
-        // Creating the request object inside a closure for immutability
-        let request: URLRequest = {
-            var request = URLRequest(url: url)
-            request.httpMethod = method.rawValue
-            request.allHTTPHeaderFields = defaultHeaders()?.merging(headers ?? [:]) { (_, new) in new }
-            
-            if let bodyParameters = bodyParameters, (method == .POST || method == .PUT) {
-                request.httpBody = try? JSONSerialization.data(withJSONObject: bodyParameters, options: .prettyPrinted)
+        guard let request = request else {
+            guard url != nil else {
+                // Return an error if the URL is invalid
+                completion(.failure(.networkFailure(NSError(domain: "Invalid URL", code: -1, userInfo: nil))))
+                return
             }
             
-            return request
-        }()
+            // Return an error if the URL is invalid
+            completion(.failure(.networkFailure(NSError(domain: "Invalid Request", code: -1, userInfo: nil))))
+            return
+        }
         
         // Check if the httpBody is nil if the HTTP Method is POST OR PUT, skip early.
         if method == .POST || method == .PUT {

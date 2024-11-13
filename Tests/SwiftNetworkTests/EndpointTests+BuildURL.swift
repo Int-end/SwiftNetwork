@@ -13,8 +13,6 @@ class EndpointTests: XCTestCase {
     struct MockEndpoint: Endpoint {
         var path: String
         var method: HTTPMethod = .GET
-        var headers: [String: String]? = nil
-        var bodyParameters: [String: Any]? = nil
         var environment: EnvironmentConfigurable
         
         init(path: String, environment: EnvironmentConfigurable) {
@@ -28,7 +26,7 @@ class EndpointTests: XCTestCase {
         let endpoint = MockEndpoint(path: "/users", environment: environment)
         
         let expectedURL = URL(string: "https://api.example.com/users")
-        let actualURL = endpoint.buildURL()
+        let actualURL = endpoint.url
         
         XCTAssertEqual(expectedURL, actualURL, "URL should be correctly constructed.")
     }
@@ -37,7 +35,7 @@ class EndpointTests: XCTestCase {
         let environment = Environment(baseURL: "invalid-url", apiKey: "123456")
         let endpoint = MockEndpoint(path: "/users", environment: environment)
         
-        let actualURL = endpoint.buildURL()
+        let actualURL = endpoint.url
         
         XCTAssertNil(actualURL, "Invalid base URL should return nil.")
     }
