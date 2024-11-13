@@ -4,7 +4,7 @@ import Combine
 
 /// A class responsible for executing network requests and processing the responses.
 @available(iOS, deprecated: 13.0, message: "Use actor-based NetworkManager for iOS 13+")
-public struct SwiftNetwork {
+struct SwiftNetwork {
     let session = URLSession.shared
     
     func perform<T: Decodable>(_ request: URLRequest, _ completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) -> URLSessionDataTask {

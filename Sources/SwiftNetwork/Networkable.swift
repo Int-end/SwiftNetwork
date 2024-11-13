@@ -7,6 +7,17 @@
 
 import Foundation
 
+/// A protocol that extends `Endpoint` to allow networkable requests to be performed.
+///
+/// Example usage:
+/// ```
+/// struct MyNetworkable: Networkable {
+///     var path: String = "/user/profile"
+///     var method: HTTPMethod = .GET
+///     var environment: EnvironmentConfigurable
+///     var request: URLRequest? = nil
+/// }
+/// ```
 public protocol Networkable: Endpoint {}
 public extension Networkable {
     /**

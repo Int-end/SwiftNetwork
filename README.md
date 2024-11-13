@@ -114,7 +114,7 @@ signIn.fetch()
 if #available(iOS 13.0, macOS 12.0, *) {
     // Use the actor-based version
     Task {
-        let result: Result<User, NetworkError> = await signIn.perform(request)
+        let result: Result<User, NetworkError> = await signIn.fetch(request)
         // Handle result
     }
 }

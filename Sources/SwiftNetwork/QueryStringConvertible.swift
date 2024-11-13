@@ -7,7 +7,11 @@
 
 import Foundation
 
+/// A protocol for types that can be converted to a string to be used in query parameters.
 public protocol QueryStringConvertible {
+    /// Converts the object to a string.
+    ///
+    /// - Returns: The string representation of the object or `nil` if it cannot be converted.
     func toString() -> String?
 }
 
