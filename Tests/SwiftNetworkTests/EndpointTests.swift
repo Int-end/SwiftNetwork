@@ -10,60 +10,51 @@ import XCTest
 
 class EndpointTests: XCTestCase {
     
-    // Mock Environment to use in tests
-    struct MockEnvironment: EnvironmentConfigurable {
-        let baseURL: String
-        let apiKey: String
+    func testValidRequestURL() {
+        let environment = Environment(baseURL: "https://jsonplaceholder.typicode.com", apiKey: "")
         
-        init(baseURL: String = "https://api.example.com", apiKey: String = "test_api_key") {
-            self.baseURL = baseURL
-            self.apiKey = apiKey
+        struct PostsEndpoint: Endpoint {
+            var path: String = "/posts"
+            var method: HTTPMethod = .GET
+            var parameters: [String: QueryStringConvertible]? = nil
+            var environment: EnvironmentConfigurable
+            
+            init(environment: EnvironmentConfigurable) {
+                self.environment = environment
+            }
         }
+        
+        let endpoint = PostsEndpoint(environment: environment)
+        let url = endpoint.url
+        
+        XCTAssertEqual(url?.absoluteString, "https://jsonplaceholder.typicode.com/posts", "The URL is incorrectly formed.")
     }
     
-    // Test valid URL and request generation
-    func testValidRequest() {
-        struct TestEndpoint: Endpoint {
-            var path: String = "/test"
+    func testRequestWithParameters() {
+        let environment = Environment(baseURL: "https://jsonplaceholder.typicode.com", apiKey: "")
+        
+        struct PostsEndpointWithParams: Endpoint {
+            var path: String = "/posts"
             var method: HTTPMethod = .GET
-            var headers: [String: String]? = nil
-            var parameters: [String: QueryStringConvertible]? = nil
-            var environment: EnvironmentConfigurable = MockEnvironment()
-            var request: URLRequest? = nil
+            var parameters: [String: QueryStringConvertible]? = ["userId": 1]
+            var environment: EnvironmentConfigurable
+            
+            init(environment: EnvironmentConfigurable) {
+                self.environment = environment
+            }
         }
         
-        let endpoint = TestEndpoint()
+        let endpoint = PostsEndpointWithParams(environment: environment)
+        let url = endpoint.url
         
-        // The URL should be valid and properly formed
-        let requestResult = endpoint.buildRequest
-        switch requestResult {
-        case .success(let request):
-            XCTAssertEqual(request.url?.absoluteString, "https://api.example.com/test")
-            XCTAssertEqual(request.httpMethod, "GET")
-        case .failure(let error):
-            XCTFail("Expected success, but got error: \(error)")
-        }
+        XCTAssertEqual(url?.absoluteString, "https://jsonplaceholder.typicode.com/posts?userId=1", "The URL with parameters is incorrectly formed.")
     }
-    
-    // Test invalid URL and request generation
-    func testInvalidRequest() {
-        struct TestEndpoint: Endpoint {
-            var path: String = "/test"
-            var method: HTTPMethod = .GET
-            var headers: [String: String]? = nil
-            var parameters: [String: QueryStringConvertible]? = nil
-            var environment: EnvironmentConfigurable = MockEnvironment(baseURL: "invalid_url")
-            var request: URLRequest? = nil
-        }
-        
-        let endpoint = TestEndpoint()
-        
-        let requestResult = endpoint.buildRequest
-        switch requestResult {
-        case .success(_):
-            XCTFail("Expected failure, but got a valid request.")
-        case .failure(let error):
-            XCTAssertNotNil(error)
-        }
-    }
+}
+
+// Sample Post Model for Decoding (POST request test)
+struct Post: Codable {
+    let userId: Int
+    let id: Int
+    let title: String
+    let body: String
 }

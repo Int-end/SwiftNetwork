@@ -33,15 +33,6 @@ public extension Networkable {
      */
     func perform<T: Decodable>(request completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
         if let request = request {
-            if #available(iOS 13.0, macOS 12.0, *) {
-                Task {
-                    let result: Result<T, NetworkError> = await SwiftNetworkActor().perform(request)
-                    completion(result)
-                }
-                
-                return
-            }
-            
             SwiftNetwork()
                 .perform(request, completion)
                 .resume()
@@ -58,16 +49,6 @@ public extension Networkable {
             if case let .failure(error) = buildRequest {
                 completion(.failure(error))
             }
-            return
-        }
-        
-        // If the request is successful, perform the network request
-        if #available(iOS 13.0, macOS 12.0, *) {
-            Task {
-                let result: Result<T, NetworkError> = await SwiftNetworkActor().perform(request)
-                completion(result)
-            }
-            
             return
         }
         

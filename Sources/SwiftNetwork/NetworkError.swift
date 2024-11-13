@@ -16,6 +16,9 @@ import Foundation
 public enum NetworkError: Error {
     /// A network failure occurred, containing the underlying error.
     case networkFailure(Error)
+    
+    /// Invalid request.
+    case invalidRequest
 
     /// Invalid request body. This occurs when the request body is malformed or cannot be serialized.
     case invalidRequestBody
@@ -29,6 +32,7 @@ public enum NetworkError: Error {
     public var description: String {
         switch self {
         case .networkFailure(let error): return "Network Failure: \(error.localizedDescription)"
+        case .invalidRequest: return "Invalid request."
         case .invalidRequestBody: return "Invalid request body"
         case .noData: return "No data received from the server"
         case .decodingError(let error): return "Decoding error: \(error.localizedDescription)"

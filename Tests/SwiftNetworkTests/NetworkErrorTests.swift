@@ -10,40 +10,38 @@ import XCTest
 
 class NetworkErrorTests: XCTestCase {
     
-    // Test handling of network failure
     func testNetworkFailure() {
-        let error = NetworkError.networkFailure(NSError(domain: "TestDomain", code: 500, userInfo: nil))
+        let error = NSError(domain: "TestError", code: -1, userInfo: nil)
+        let networkError = NetworkError.networkFailure(error)
         
-        switch error {
-        case .networkFailure(let underlyingError):
-            XCTAssertEqual((underlyingError as NSError).domain, "TestDomain")
-            XCTAssertEqual((underlyingError as NSError).code, 500)
+        switch networkError {
+        case .networkFailure(let error):
+            XCTAssertEqual(error.localizedDescription, "The operation couldn’t be completed. (TestError error -1.)", "The network failure error description is incorrect.")
         default:
-            XCTFail("Expected network failure error")
+            XCTFail("Expected networkFailure error, but got: \(networkError)")
         }
     }
     
-    // Test invalid request body error
-    func testInvalidRequestBody() {
-        let error = NetworkError.invalidRequestBody
-        switch error {
-        case .invalidRequestBody:
-            XCTAssertTrue(true)
-        default:
-            XCTFail("Expected invalid request body error")
-        }
-    }
-    
-    // Test decoding error
     func testDecodingError() {
-        let underlyingError = NSError(domain: "TestDecoding", code: 1, userInfo: nil)
-        let error = NetworkError.decodingError(underlyingError)
+        let error = NSError(domain: "TestDecodingError", code: -1, userInfo: nil)
+        let networkError = NetworkError.decodingError(error)
         
-        switch error {
-        case .decodingError(let decodingError):
-            XCTAssertEqual((decodingError as NSError).domain, "TestDecoding")
+        switch networkError {
+        case .decodingError(let error):
+            XCTAssertEqual(error.localizedDescription, "The operation couldn’t be completed. (TestDecodingError error -1.)", "The decoding error description is incorrect.")
         default:
-            XCTFail("Expected decoding error")
+            XCTFail("Expected decodingError, but got: \(networkError)")
+        }
+    }
+    
+    func testNoDataError() {
+        let networkError = NetworkError.noData
+        
+        switch networkError {
+        case .noData:
+            XCTAssertTrue(true, "The noData error was correctly thrown.")
+        default:
+            XCTFail("Expected noData error, but got: \(networkError)")
         }
     }
 }

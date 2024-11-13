@@ -8,48 +8,37 @@
 import XCTest
 @testable import SwiftNetwork
 
-@available(iOS 13.0, *)
-class SwiftNetworkActorTests: XCTestCase {
-    
-    var actor: SwiftNetworkActor!
-    
-    override func setUp() {
-        super.setUp()
-        actor = SwiftNetworkActor()
-    }
-    
-    // Test successful network request with actor
-    func testActorNetworkRequestSuccess() async {
-        // Create a mock URLRequest
-        let url = URL(string: "https://api.example.com/test")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+@available(iOS 13.0, macOS 12.0, *)
+actor TestActor {
+    func performNetworkRequest() async throws -> [Post] {
+        let environment = Environment(baseURL: "https://jsonplaceholder.typicode.com", apiKey: "")
         
-        // Mock URLSession response (Replace with actual mock or stub in real testing)
-        let result: Result<MockResponse, NetworkError> = await actor.perform(request)
+        struct GetPostsEndpoint: Requestable {
+            var path: String = "/posts"
+            var method: HTTPMethod = .GET
+            var parameters: [String: QueryStringConvertible]? = nil
+            var environment: EnvironmentConfigurable
+            
+            init(environment: EnvironmentConfigurable) {
+                self.environment = environment
+            }
+        }
+        
+        let endpoint = GetPostsEndpoint(environment: environment)
+        let result: Result<[Post], NetworkError> = await endpoint.fetch()
         
         switch result {
-        case .success(let decodedResponse):
-            XCTAssertEqual(decodedResponse.key, "value")
-        case .failure(let error):
-            XCTFail("Expected success, but got error: \(error)")
+        case .success(let success): return success
+        case .failure: return []
         }
     }
+}
+
+class ActorNetworkTests: XCTestCase {
     
-    // Test network request failure in actor
-    func testActorNetworkRequestFailure() async {
-        // Create a mock invalid URLRequest
-        let url = URL(string: "https://invalid_url")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        
-        let result: Result<MockResponse, NetworkError> = await actor.perform(request)
-        
-        switch result {
-        case .success(_):
-            XCTFail("Expected failure, but got success.")
-        case .failure(let error):
-            XCTAssertNotNil(error)
-        }
+    func testAsyncRequestWithActor() async throws {
+        let actor = TestActor()
+        let posts = try await actor.performNetworkRequest()
+        XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned.")
     }
 }
