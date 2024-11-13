@@ -109,6 +109,15 @@ signIn.fetch()
             print("Received users: \(users)")
     })
     .store(in: &cancellables)
+    
+// 3.4 Perform a Request in Actor
+if #available(iOS 13.0, macOS 12.0, *) {
+    // Use the actor-based version
+    Task {
+        let result: Result<User, NetworkError> = await signIn.perform(request)
+        // Handle result
+    }
+}
 ```
 
 ### 4. Handling Response Data
