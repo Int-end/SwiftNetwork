@@ -21,13 +21,10 @@ public protocol Endpoint {
     var headers: [String: String]? { get }
     
     /// The body parameters to be included in the request, if applicable. Defaults to nil.
-    var parameters: [String: Any]? { get }
+    var parameters: [String: QueryStringConvertible]? { get }
     
     /// The environment configuration, including base URL and API key.
     var environment: EnvironmentConfigurable { get }
-    
-    /// The URL from the base URL and the endpoint path.
-    var url: URL? { get }
     
     /// The URL Request
     /// > Warning: If the request has a value, other Endpoint items will not be used. We will directly perform the operation with this request.
@@ -42,7 +39,7 @@ public protocol Endpoint {
 public extension Endpoint {
     var method: HTTPMethod { .GET }
     var headers: [String: String]? { nil }
-    var parameters: [String: Any]? { nil }
+    var parameters: [String: String]? { nil }
     
     /// The URL from the base URL and the endpoint path.
     ///
@@ -55,6 +52,14 @@ public extension Endpoint {
     var components: URLComponents? {
         var components = URLComponents(string: environment.baseURL)
         components?.path += path
+        
+        if let parameters = parameters, method == .GET {
+            components?.queryItems = parameters.compactMap { key, value in
+                guard let value = value.toString() else { return nil }
+                return URLQueryItem(name: key, value: value)
+            }
+        }
+        
         return components
     }
     
