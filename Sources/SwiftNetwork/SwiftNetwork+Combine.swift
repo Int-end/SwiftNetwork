@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-@available(macOS 12.0, iOS 13.0, *)
+@available(iOS 13.0, macOS 12.0, *)
 extension SwiftNetwork {
     /// Perform a network request and return a Combine publisher.
         ///
