@@ -1,7 +1,9 @@
 
 import Foundation
+import Combine
 
 /// A class responsible for executing network requests and processing the responses.
+@available(iOS, deprecated: 13.0, message: "Use actor-based NetworkManager for iOS 13+")
 public struct SwiftNetwork {
     let session = URLSession.shared
     
@@ -25,7 +27,7 @@ public struct SwiftNetwork {
         }
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            completion(.failure(.networkFailure(NSError(domain: "Invalid Response", code: -1, userInfo: nil))))
+            completion(.failure(.networkFailure(NSError(domain: "Invalid Response", code: -2, userInfo: nil))))
             return
         }
         

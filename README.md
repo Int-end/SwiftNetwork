@@ -70,8 +70,9 @@ let environment = Environment(baseURL: "https://api.example.com", apiKey: "your-
 Once you have defined your endpoint and environment, you can call the `performRequest` method to make the network request and decode the response.
 
 ```swift
-let signIn = SignInEndpoint(environment: environment)
+let signIn = SignInEndpoint(environment: environment, body: ["username": "", "password: ******"])
 
+// 3.1 Perform a Request
 signIn.perform { (result: Result<User, NetworkError>) in
     switch result {
     case .success(let user):
@@ -83,6 +84,7 @@ signIn.perform { (result: Result<User, NetworkError>) in
 
 // OR
 
+// 3.2 Perform a Request More Readable Way
 signIn.fetch { (result: Result<User, NetworkError>) in
     switch result {
     case .success(let user):
@@ -91,6 +93,22 @@ signIn.fetch { (result: Result<User, NetworkError>) in
         print("Error occurred: \(error)")
     }
 }
+
+// 3.3 Perform a Request in Combine Way
+var cancellables = Set<AnyCancellable>()
+
+signIn.fetch()
+    .sink(receiveCompletion: { completion in
+        switch completion {
+        case .finished:
+            print("Request completed successfully.")
+        case .failure(let error):
+            print("Request failed with error: \(error.description)")
+        }
+    }, receiveValue: { (users: [User]) in
+            print("Received users: \(users)")
+    })
+    .store(in: &cancellables)
 ```
 
 ### 4. Handling Response Data

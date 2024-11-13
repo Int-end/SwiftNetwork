@@ -14,7 +14,7 @@ struct SignInEndpoint: Requestable {
     
     let environment: EnvironmentConfigurable
     
-    init(environment: EnvironmentConfigurable, body parameters: [String: Any]) {
+    init(environment: EnvironmentConfigurable, body parameters: [String: QueryStringConvertible]) {
         self.parameters = parameters
         self.environment = environment
     }
