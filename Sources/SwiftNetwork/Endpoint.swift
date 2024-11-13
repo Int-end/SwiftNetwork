@@ -69,4 +69,28 @@ extension Endpoint {
         }
         return defaultHeaders
     }
+    
+    var buildRequest: Result<URLRequest, NetworkError> {
+        guard let url = url else {
+            // Return an error if the URL is invalid
+            return .failure(.networkFailure(NSError(domain: "Invalid URL", code: -1, userInfo: nil)))
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.allHTTPHeaderFields = defaultHeaders()?.merging(headers ?? [:]) { (_, new) in new }
+        
+        if let parameters = parameters, (method == .POST || method == .PUT) {
+            request.httpBody = try? JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
+        }
+        
+        // Check if the httpBody is nil if the HTTP Method is POST OR PUT, skip early.
+        if method == .POST || method == .PUT {
+            if request.httpBody == nil {
+                return .failure(.invalidRequestBody)
+            }
+        }
+        
+        return .success(request)
+    }
 }

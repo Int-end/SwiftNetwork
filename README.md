@@ -20,7 +20,7 @@ To integrate SwiftNetwork into your project, you can use Swift Package Manager.
 1. Open your Xcode project.
 2. Navigate to `File` -> `Add Packages`.
 3. Paste the following URL into the search bar:  
-   `https://github.com/your-username/SwiftNetwork.git`
+   `https://github.com/Int-end/SwiftNetwork.git`
 4. Select the version you want to integrate (you can choose the latest release).
 5. Add the package to your project.
 
@@ -28,7 +28,7 @@ Alternatively, you can add the package manually to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-username/SwiftNetwork.git", from: "1.0.0")
+    .package(url: "https://github.com/Int-end/SwiftNetwork.git", from: "1.0.0")
 ]
 
 ## Usage
@@ -70,8 +70,9 @@ let environment = Environment(baseURL: "https://api.example.com", apiKey: "your-
 Once you have defined your endpoint and environment, you can call the `performRequest` method to make the network request and decode the response.
 
 ```swift
-let signIn = SignInEndpoint(environment: environment)
+let signIn = SignInEndpoint(environment: environment, body: ["username": "", "password: ******"])
 
+// 3.1 Perform a Request
 signIn.perform { (result: Result<User, NetworkError>) in
     switch result {
     case .success(let user):
@@ -83,6 +84,7 @@ signIn.perform { (result: Result<User, NetworkError>) in
 
 // OR
 
+// 3.2 Perform a Request More Readable Way
 signIn.fetch { (result: Result<User, NetworkError>) in
     switch result {
     case .success(let user):
@@ -91,6 +93,22 @@ signIn.fetch { (result: Result<User, NetworkError>) in
         print("Error occurred: \(error)")
     }
 }
+
+// 3.3 Perform a Request in Combine Way
+var cancellables = Set<AnyCancellable>()
+
+signIn.fetch()
+    .sink(receiveCompletion: { completion in
+        switch completion {
+        case .finished:
+            print("Request completed successfully.")
+        case .failure(let error):
+            print("Request failed with error: \(error.description)")
+        }
+    }, receiveValue: { (users: [User]) in
+            print("Received users: \(users)")
+    })
+    .store(in: &cancellables)
 ```
 
 ### 4. Handling Response Data
