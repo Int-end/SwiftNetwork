@@ -20,7 +20,7 @@ To integrate SwiftNetwork into your project, you can use Swift Package Manager.
 1. Open your Xcode project.
 2. Navigate to `File` -> `Add Packages`.
 3. Paste the following URL into the search bar:  
-   `https://github.com/your-username/SwiftNetwork.git`
+   `https://github.com/Int-end/SwiftNetwork.git`
 4. Select the version you want to integrate (you can choose the latest release).
 5. Add the package to your project.
 
@@ -28,7 +28,7 @@ Alternatively, you can add the package manually to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-username/SwiftNetwork.git", from: "1.0.0")
+    .package(url: "https://github.com/Int-end/SwiftNetwork.git", from: "1.0.0")
 ]
 
 ## Usage
@@ -123,7 +123,7 @@ Check out the sample project in the `Sample/` folder to see how the framework wo
 
 ## Documentation
 
-You can find the full documentation for this framework [here](https://github.com/your-username/SwiftNetwork/docs).
+You can find the full documentation for this framework [here](https://github.com/Int-end/SwiftNetwork/docs).
 
 ## Contributing
 
