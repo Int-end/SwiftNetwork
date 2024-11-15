@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-@available(iOS 13.0, macOS 12.0, *)
+@available(iOS 13.0, macOS 10.15, *)
 public extension Networkable {
     func perform<T: Decodable>() -> Future<T, NetworkError> {
         if let request = request {
@@ -19,18 +19,15 @@ public extension Networkable {
     }
     
     func perform<T: Decodable>(request method: HTTPMethod) -> Future<T, NetworkError> {
-        let buildRequest = buildRequest
-        guard case let .success(request) = buildRequest else {
+        switch buildRequest {
+        case .success(let request):
+            return SwiftNetwork()
+                .perform(request)
+        case .failure(let error):
             return Future { promise in
-                if case let .failure(error) = buildRequest {
-                    promise(.failure(error))
-                }
+                promise(.failure(error))
             }
         }
-        
-        // If the request is successful, perform the network request
-        return SwiftNetwork()
-            .perform(request)
     }
     
     func fetch<T: Decodable>() -> Future<T, NetworkError> {

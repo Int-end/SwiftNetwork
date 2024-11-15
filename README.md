@@ -111,7 +111,7 @@ signIn.fetch()
     .store(in: &cancellables)
     
 // 3.4 Perform a Request in Actor
-if #available(iOS 13.0, macOS 12.0, *) {
+if #available(iOS 13.0, macOS 10.15, *) {
     // Use the actor-based version
     Task {
         let result: Result<User, NetworkError> = await signIn.fetch(request)

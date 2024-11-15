@@ -12,7 +12,7 @@ struct NetworkRequest {
     
     mutating func perform() {
         // 2. Set Up the Environment
-        let environment = Environment(baseURL: "https://api.example.com", apiKey: "your-api-key")
+        let environment = Mock.environment
 
         // 3.1 Perform a Request
         let signIn = SignInEndpoint(environment: environment, body: ["username": "", "password: ******"])
@@ -51,7 +51,7 @@ struct NetworkRequest {
             .store(in: &cancellables)
         
         // 3.3 Perform a Request in Actor
-        if #available(iOS 13.0, macOS 12.0, *) {
+        if #available(iOS 13.0, macOS 10.15, *) {
             // Use the actor-based version
             Task {
                 let result: Result<User, NetworkError> = await signIn.fetch(request)

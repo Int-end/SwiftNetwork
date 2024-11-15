@@ -33,7 +33,7 @@ public protocol Endpoint {
     var method: HTTPMethod { get }
 
     /// The headers to be included in the request. Defaults to nil, which means default headers are used.
-    var headers: [String: String]? { get }
+    var headers: [String: String] { get }
 
     /// The body parameters to be included in the request, if applicable. Defaults to nil.
     var parameters: [String: QueryStringConvertible]? { get }
@@ -52,13 +52,16 @@ public extension Endpoint {
     var method: HTTPMethod { .GET }
 
     /// Default headers are nil, which will be merged with custom headers if provided.
-    var headers: [String: String]? { nil }
+    var headers: [String: String] { defaultHeaders }
 
     /// Default parameters are nil.
     var parameters: [String: QueryStringConvertible]? { nil }
 
     /// Default value for request is nil.
-    var request: URLRequest? { nil }
+    var request: URLRequest? {
+        guard case let .success(request) = buildRequest else { return nil }
+        return request
+    }
     
     /// Constructs URL components based on the endpoint's base URL and the path.
     var components: URLComponents? {
@@ -85,7 +88,7 @@ public extension Endpoint {
     /// Provides default headers for the request, including the `Authorization` header if an API key is available.
     ///
     /// - Returns: A dictionary of headers to be included in the request.
-    func defaultHeaders() -> [String: String]? {
+    var defaultHeaders: [String: String] {
         var defaultHeaders = [String: String]()
         if !environment.apiKey.isEmpty {
             defaultHeaders["Authorization"] = "Bearer \(environment.apiKey)"
@@ -104,7 +107,7 @@ public extension Endpoint {
         
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        request.allHTTPHeaderFields = defaultHeaders()?.merging(headers ?? [:]) { (_, new) in new }
+        request.allHTTPHeaderFields = defaultHeaders.merging(headers) { (_, new) in new }
         
         if let parameters = parameters, (method == .POST || method == .PUT) {
             request.httpBody = try? JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
