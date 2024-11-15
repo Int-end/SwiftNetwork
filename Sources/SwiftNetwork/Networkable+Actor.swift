@@ -5,7 +5,7 @@
 //  Created by Sijo Thomas on 13/11/24.
 //
 
-@available(iOS 13.0, macOS 12.0, *)
+@available(iOS 13.0, macOS 10.15, *)
 public extension Networkable {
     /**
      Performs the network request and decodes the response into a specified type.
@@ -26,18 +26,13 @@ public extension Networkable {
         return await perform(request: method)
     }
     
-    func perform<T: Decodable>(request method: HTTPMethod) async -> Result<T, NetworkError> {
-        let buildRequest = buildRequest
-        
-        guard case let .success(request) = buildRequest else {
-            if case let .failure(error) = buildRequest {
-                return .failure(error)
-            }
-            
-            return .failure(.invalidRequest)
+    private func perform<T: Decodable>(request method: HTTPMethod) async -> Result<T, NetworkError> {
+        switch buildRequest {
+        case .success(let request):
+            return await SwiftNetworkActor().perform(request)
+        case .failure(let error):
+            return .failure(error)
         }
-        
-        return await SwiftNetworkActor().perform(request)
     }
     
     func fetch<T: Decodable>() async -> Result<T, NetworkError> {

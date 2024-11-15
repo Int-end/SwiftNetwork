@@ -3,15 +3,13 @@ import Foundation
 import Combine
 
 /// A class responsible for executing network requests and processing the responses.
-@available(iOS, deprecated: 13.0, message: "Use actor-based NetworkManager for iOS 13+")
 struct SwiftNetwork {
-    let session = URLSession.shared
-    
-    func perform<T: Decodable>(_ request: URLRequest, _ completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) -> URLSessionDataTask {
+    func perform<T: Decodable>(_ request: URLRequest, _ completion: @escaping (Result<T, NetworkError>) -> Void) {
         // Perform the network request asynchronously
-        session.dataTask(with: request) { data, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             self.response(data: data, error: error, response: response, completion: completion)
         }
+        .resume()
     }
     
     /// Processes the server's response and decodes the data into the desired model.
@@ -22,6 +20,12 @@ struct SwiftNetwork {
     ///   - completion: A closure that returns the decoded result or an error.
     func response<T: Decodable>(data: Data?, error: Error?, response: URLResponse?, completion: @escaping (Result<T, NetworkError>) -> Void) {
         if let error = error {
+            if let error = error as? URLError,
+               error.code == .timedOut {
+                completion(.failure(.timeout(error)))
+                return
+            }
+            
             completion(.failure(.networkFailure(error)))
             return
         }

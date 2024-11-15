@@ -9,52 +9,98 @@ import XCTest
 @testable import SwiftNetwork
 
 class EndpointTests: XCTestCase {
-    
-    func testValidRequestURL() {
-        let environment = Environment(baseURL: "https://jsonplaceholder.typicode.com", apiKey: "")
-        
-        struct PostsEndpoint: Endpoint {
-            var path: String = "/posts"
-            var method: HTTPMethod = .GET
-            var parameters: [String: QueryStringConvertible]? = nil
-            var environment: EnvironmentConfigurable
-            
-            init(environment: EnvironmentConfigurable) {
-                self.environment = environment
-            }
-        }
-        
-        let endpoint = PostsEndpoint(environment: environment)
-        let url = endpoint.url
-        
-        XCTAssertEqual(url?.absoluteString, "https://jsonplaceholder.typicode.com/posts", "The URL is incorrectly formed.")
+    func testGETURL() {
+        let endpoint = MockGETEndpoint()
+        XCTAssertEqual(endpoint.url?.absoluteString, "\(Mock.baseURL)\(Mock.Path.posts)", "The URL with parameters is incorrectly formed.")
     }
     
-    func testRequestWithParameters() {
-        let environment = Environment(baseURL: "https://jsonplaceholder.typicode.com", apiKey: "")
-        
-        struct PostsEndpointWithParams: Endpoint {
-            var path: String = "/posts"
-            var method: HTTPMethod = .GET
-            var parameters: [String: QueryStringConvertible]? = ["userId": 1]
-            var environment: EnvironmentConfigurable
-            
-            init(environment: EnvironmentConfigurable) {
-                self.environment = environment
-            }
-        }
-        
-        let endpoint = PostsEndpointWithParams(environment: environment)
-        let url = endpoint.url
-        
-        XCTAssertEqual(url?.absoluteString, "https://jsonplaceholder.typicode.com/posts?userId=1", "The URL with parameters is incorrectly formed.")
+    func testSingleGETURL() {
+        XCTAssertEqual(MockGETSingleEndpoint().url?.absoluteString, "\(Mock.baseURL)\(Mock.Path.singlePost)", "The URL with parameters is incorrectly formed.")
+    }
+    
+    func testPOSTURL() {
+        XCTAssertEqual(MockPOSTEndpoint().url?.absoluteString, "\(Mock.baseURL)\(Mock.Path.posts)", "The URL is incorrectly formed.")
+    }
+    
+    func testPUTURL() {
+        XCTAssertEqual(MockPUTEndpoint().url?.absoluteString, "\(Mock.baseURL)\(Mock.Path.singlePost)", "The URL is incorrectly formed.")
+    }
+    
+    func testDELETEURL() {
+        XCTAssertEqual(MockDELETEEndpoint().url?.absoluteString, "\(Mock.baseURL)\(Mock.Path.singlePost)", "The URL is incorrectly formed.")
+    }
+    
+    func testDefaultHeaders() {
+        let endpoint = MockGETEndpoint()
+        let headers = endpoint.headers
+        XCTAssertNotNil(headers)
+        XCTAssertEqual(headers["Authorization"], "Bearer \(endpoint.environment.apiKey)")
     }
 }
 
-// Sample Post Model for Decoding (POST request test)
-struct Post: Codable {
-    let userId: Int
-    let id: Int
-    let title: String
-    let body: String
+class MockGETEndpoint: Endpoint {
+    let path: String
+    let environment: EnvironmentConfigurable
+    
+    init(path: String = Mock.Path.posts, environment: EnvironmentConfigurable = Mock.environment) {
+        self.path = path
+        self.environment = environment
+    }
+}
+
+class MockGETSingleEndpoint: Endpoint {
+    let path: String
+    let environment: EnvironmentConfigurable
+    
+    init(path: String = Mock.Path.singlePost, environment: EnvironmentConfigurable = Mock.environment) {
+        self.path = path
+        self.environment = environment
+    }
+}
+
+class MockPOSTEndpoint: Endpoint {
+    let path: String
+    let parameters: [String: QueryStringConvertible]?
+    let environment: EnvironmentConfigurable
+    let method: HTTPMethod = .POST
+    
+    init(path: String = Mock.Path.posts,
+         environment: EnvironmentConfigurable = Mock.environment,
+         parameters: [String: QueryStringConvertible]? = ["userId": 1,
+                                                          "id": 1,
+                                                          "title": "Sit",
+                                                          "body": "Back"]) {
+        self.path = path
+        self.environment = environment
+        self.parameters = parameters
+    }
+}
+
+class MockPUTEndpoint: Endpoint {
+    let path: String
+    let parameters: [String: QueryStringConvertible]?
+    let environment: EnvironmentConfigurable
+    let method: HTTPMethod = .PUT
+    
+    init(path: String = Mock.Path.singlePost,
+         environment: EnvironmentConfigurable = Mock.environment,
+         parameters: [String: QueryStringConvertible]? = ["userId": 1,
+                                                          "title": "Sit",
+                                                          "body": "Back"]) {
+        self.path = path
+        self.environment = environment
+        self.parameters = parameters
+    }
+}
+
+class MockDELETEEndpoint: Endpoint {
+    let path: String
+    let environment: EnvironmentConfigurable
+    let method: HTTPMethod = .DELETE
+    
+    init(path: String = Mock.Path.singlePost,
+         environment: EnvironmentConfigurable = Mock.environment) {
+        self.path = path
+        self.environment = environment
+    }
 }

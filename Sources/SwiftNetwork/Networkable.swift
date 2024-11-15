@@ -31,45 +31,39 @@ public extension Networkable {
      
      - Important: This method uses a background thread for the network request and should be called from the main thread when updating the UI with the results.
      */
-    func perform<T: Decodable>(request completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
+    func perform<T: Decodable>(request completion: @escaping (Result<T, NetworkError>) -> Void) {
         if let request = request {
             SwiftNetwork()
                 .perform(request, completion)
-                .resume()
             return
         }
         
         perform(request: method, completion)
     }
     
-    func perform<T: Decodable>(request method: HTTPMethod, _ completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
-        let buildRequest = buildRequest
-        
-        guard case let .success(request) = buildRequest else {
-            if case let .failure(error) = buildRequest {
-                completion(.failure(error))
-            }
-            return
+    func perform<T: Decodable>(request method: HTTPMethod, _ completion: @escaping (Result<T, NetworkError>) -> Void) {
+        switch buildRequest {
+        case .success(let request):
+            SwiftNetwork()
+                .perform(request, completion)
+        case .failure(let error):
+            completion(.failure(error))
         }
-        
-        SwiftNetwork()
-            .perform(request, completion)
-            .resume()
     }
     
-    func fetch<T: Decodable>( _ completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
+    func fetch<T: Decodable>( _ completion: @escaping (Result<T, NetworkError>) -> Void) {
         perform(request: .GET, completion)
     }
     
-    func sync<T: Decodable>( _ completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
+    func sync<T: Decodable>( _ completion: @escaping (Result<T, NetworkError>) -> Void) {
         perform(request: .POST, completion)
     }
     
-    func update<T: Decodable>( _ completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
+    func update<T: Decodable>( _ completion: @escaping (Result<T, NetworkError>) -> Void) {
         perform(request: .PUT, completion)
     }
     
-    func delete<T: Decodable>( _ completion: @escaping @Sendable (Result<T, NetworkError>) -> Void) {
+    func delete<T: Decodable>( _ completion: @escaping (Result<T, NetworkError>) -> Void) {
         perform(request: .DELETE, completion)
     }
 }

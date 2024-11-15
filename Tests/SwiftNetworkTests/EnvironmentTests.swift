@@ -10,16 +10,8 @@ import XCTest
 
 class EnvironmentTests: XCTestCase {
     func testEnvironment() {
-        // Define a custom environment with a base URL
-        struct TestEnvironment: EnvironmentConfigurable {
-            var baseURL: String = "https://jsonplaceholder.typicode.com"
-            var apiKey: String = "dummyApiKey"
-        }
-
-        let environment = TestEnvironment()
-        
         // Ensure the environment has the correct base URL
-        XCTAssertEqual(environment.baseURL, "https://jsonplaceholder.typicode.com")
-        XCTAssertEqual(environment.apiKey, "dummyApiKey")
+        XCTAssertEqual(Mock.environment.baseURL, Mock.baseURL)
+        XCTAssertEqual(Mock.environment.apiKey, "API KEY")
     }
 }
