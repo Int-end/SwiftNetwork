@@ -87,7 +87,7 @@ Alternatively, you can add the package manually to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-username/SwiftNetwork.git", from: "1.0.0")
+    .package(url: "https://github.com/Int-end/SwiftNetwork.git", from: "1.0.0")
 ]
 ```
 
