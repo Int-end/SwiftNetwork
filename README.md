@@ -175,6 +175,7 @@ For **iOS 13+** and **macOS 10.15+**, use the **Actor-based** approach to ensure
 
 ```swift
 if #available(iOS 13.0, macOS 10.15, *) {
+    // Use the actor-based version
     Task {
         let result: Result<User, NetworkError> = await signIn.fetch(request)
         // Handle result
