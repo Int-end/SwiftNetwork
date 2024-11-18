@@ -127,7 +127,7 @@ let environment = Environment(baseURL: "https://api.example.com", apiKey: "your-
 
 ### 3. Perform a Request
 
-Once you have defined your endpoint and environment, you can call the `performRequest` method to make the network request and decode the response. SwiftNetwork now supports three approaches for performing network requests, each suited for different iOS versions and use cases:
+Once you have defined your endpoint and environment, you can call the `perform` method to make the network request and decode the response. SwiftNetwork now supports three approaches for performing network requests, each suited for different iOS versions and use cases:
 
 #### 3.1 **Wrapper-Based Network Request**
 
@@ -175,6 +175,7 @@ For **iOS 13+** and **macOS 10.15+**, use the **Actor-based** approach to ensure
 
 ```swift
 if #available(iOS 13.0, macOS 10.15, *) {
+    // Use the actor-based version
     Task {
         let result: Result<User, NetworkError> = await signIn.fetch(request)
         // Handle result
@@ -184,7 +185,7 @@ if #available(iOS 13.0, macOS 10.15, *) {
 
 ### 4. Handling Response Data
 
-The `performRequest` method will automatically decode the response into the specified model type (`T` in this case). If the response is invalid or the network request fails, the completion handler will return a `NetworkError`.
+The `perform` method will automatically decode the response into the specified model type (`T` in this case). If the response is invalid or the network request fails, the completion handler will return a `NetworkError`.
 
 Example model for decoding a response:
 
@@ -217,7 +218,7 @@ var customHeaders: [String: String] = [
 - `.noData`: No data was returned from the server.
 - `.decodingError`: The response data could not be decoded into the expected model.
 
-You can handle errors as shown in the sample above by checking the `Result` returned from `performRequest`.
+You can handle errors as shown in the sample above by checking the `Result` returned from `perform`.
 
 ## Sample Project
 
