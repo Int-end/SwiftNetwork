@@ -5,56 +5,104 @@
 //  Created by Sijo Thomas on 13/11/24.
 //
 
-/// Represents network errors that can occur during an API request.
-///
-/// - timeout: The request took too long to complete. This could be due to network issues or server slowness.
-/// - networkFailure: A network error occurred, such as a lost connection or DNS failure.
-/// - invalidRequestBody: The request body was malformed or could not be serialized.
-/// - noData: The server did not send any data in response to the request.
-/// - decodingError: The server's response could not be decoded into the expected model.
-///
-public enum NetworkError: Error {
-    /// A network timeout occurred, which happens when the request takes longer than the `timeoutInterval` and the server does not respond within the specified time frame.
-    /// This can be caused by slow network speeds, server unresponsiveness, or excessive server load.
-    ///
-    /// Example scenario: A user tries to fetch data from the server, but the request exceeds the timeout due to slow connectivity or a server bottleneck.
-    case timeout(Error)
+import Foundation
 
-    /// A generic network failure occurred, and the error includes additional details about the failure, such as the underlying error (e.g., connectivity issues).
+/// Represents various network-related errors that can occur during network operations.
+public enum NetworkError: Error {
+    /// A generic network failure occurred.
     case networkFailure(Error)
     
-    /// Invalid request.
+    /// The request was invalid.
     case invalidRequest
-
-    /// The request body is invalid and could not be serialized, potentially due to malformed JSON or missing required fields.
+    
+    /// The request body was invalid.
     case invalidRequestBody
-
-    /// The server returned no data in the response. This might occur if the requested resource does not exist or the server failed to send a response.
+    
+    /// No data was received in the response.
     case noData
-
-    /// There was an issue decoding the server's response into the expected model. This could be due to an unexpected response format.
+    
+    /// The response data could not be decoded.
     case decodingError(Error)
     
+    /// The response was invalid or malformed.
+    case invalidResponse
+    
+    /// The request timed out.
+    case timeout(Error)
+    
+    /// No internet connection available.
+    case noConnection
+    
+    /// The request was cancelled.
+    case cancelled
+    
+    /// Server returned an error status code (5xx).
     case serverError(statusCode: Int)
+    
+    /// Client error occurred (4xx).
     case clientError(statusCode: Int)
+    
+    /// Invalid HTTP status code received.
+    case invalidStatusCode(Int)
+}
 
-    /// Returns a human-readable description for the error, useful for logging or debugging.
+// MARK: - CustomStringConvertible
+extension NetworkError: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .timeout(let error):
-            return "Request timed out. \(error.localizedDescription)"
-        case .invalidRequest:
-            return "Invalid request."
         case .networkFailure(let error):
-            return "Network Failure: \(error.localizedDescription)"
+            return "Network failure: \(error.localizedDescription)"
+        case .invalidRequest:
+            return "Invalid request"
         case .invalidRequestBody:
-            return "The request body was invalid or could not be serialized."
+            return "Invalid request body"
         case .noData:
-            return "No data was received from the server."
+            return "No data received"
         case .decodingError(let error):
             return "Decoding error: \(error.localizedDescription)"
-        case .serverError(statusCode: let statusCode): return "Client Error StatusCode: \(statusCode)."
-        case .clientError(statusCode: let statusCode): return "Server Error StatusCode: \(statusCode)."
+        case .invalidResponse:
+            return "Invalid response"
+        case .timeout(let error):
+            return "Request timed out: \(error.localizedDescription)"
+        case .noConnection:
+            return "No internet connection"
+        case .cancelled:
+            return "Request cancelled"
+        case .serverError(let statusCode):
+            return "Server error with status code: \(statusCode)"
+        case .clientError(let statusCode):
+            return "Client error with status code: \(statusCode)"
+        case .invalidStatusCode(let code):
+            return "Invalid status code: \(code)"
+        }
+    }
+}
+
+// MARK: - Equatable
+extension NetworkError: Equatable {
+    public static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
+        switch (lhs, rhs) {
+        case (.invalidRequest, .invalidRequest),
+             (.invalidRequestBody, .invalidRequestBody),
+             (.noData, .noData),
+             (.invalidResponse, .invalidResponse),
+             (.noConnection, .noConnection),
+             (.cancelled, .cancelled):
+            return true
+        case (.networkFailure(let lhsError), .networkFailure(let rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        case (.decodingError(let lhsError), .decodingError(let rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        case (.timeout(let lhsError), .timeout(let rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        case (.serverError(let lhsCode), .serverError(let rhsCode)):
+            return lhsCode == rhsCode
+        case (.clientError(let lhsCode), .clientError(let rhsCode)):
+            return lhsCode == rhsCode
+        case (.invalidStatusCode(let lhsCode), .invalidStatusCode(let rhsCode)):
+            return lhsCode == rhsCode
+        default:
+            return false
         }
     }
 }

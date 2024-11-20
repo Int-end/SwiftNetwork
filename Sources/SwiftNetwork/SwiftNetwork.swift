@@ -2,56 +2,108 @@
 import Foundation
 import Combine
 
-/// A class responsible for executing network requests and processing the responses.
+import Foundation
+import Combine
+
+/// A networking layer that handles HTTP requests and response processing using completion handlers.
 struct SwiftNetwork {
-    func perform<T: Decodable>(_ request: URLRequest, _ completion: @escaping (Result<T, NetworkError>) -> Void) {
-        // Perform the network request asynchronously
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            self.response(data: data, error: error, response: response, completion: completion)
+    // MARK: - Configuration
+    struct Configuration {
+        let timeoutInterval: TimeInterval
+        let sessionConfiguration: URLSessionConfiguration
+        let decoder: JSONDecoder
+        
+        static var `default`: Configuration {
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 30
+            
+            return Configuration(
+                timeoutInterval: 30,
+                sessionConfiguration: config,
+                decoder: JSONDecoder()
+            )
+        }
+    }
+    
+    // MARK: - Properties
+    private let configuration: Configuration
+    private let session: URLSession
+    
+    // MARK: - Initialization
+    init(configuration: Configuration = .default) {
+        self.configuration = configuration
+        self.session = URLSession(configuration: configuration.sessionConfiguration)
+    }
+
+    // MARK: - Network Operations
+    func perform<T: Decodable>(_ request: URLRequest,
+                              _ completion: @escaping (Result<T, NetworkError>) -> Void) {
+        session.dataTask(with: request) { data, response, error in
+            let result: Result<T, NetworkError> = self.handleResponse(data: data,
+                                                                    response: response,
+                                                                    error: error)
+            completion(result)
         }
         .resume()
     }
     
-    /// Processes the server's response and decodes the data into the desired model.
-    ///
-    /// - Parameters:
-    ///   - data: The raw response data.
-    ///   - response: The URL response.
-    ///   - completion: A closure that returns the decoded result or an error.
-    func response<T: Decodable>(data: Data?, error: Error?, response: URLResponse?, completion: @escaping (Result<T, NetworkError>) -> Void) {
+    // MARK: - Response Handling
+    private func handleResponse<T: Decodable>(data: Data?,
+                                            response: URLResponse?,
+                                            error: Error?) -> Result<T, NetworkError> {
         if let error = error {
-            if let error = error as? URLError,
-               error.code == .timedOut {
-                completion(.failure(.timeout(error)))
-                return
-            }
-            
-            completion(.failure(.networkFailure(error)))
-            return
+            return handleError(error)
         }
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            completion(.failure(.networkFailure(NSError(domain: "Invalid Response", code: -2, userInfo: nil))))
-            return
+            return .failure(.invalidResponse)
         }
         
         guard (200...299).contains(httpResponse.statusCode) else {
-            let errorDomain = (400...499).contains(httpResponse.statusCode) ? "Client Error" : "Server Error"
-            completion(.failure(.networkFailure(NSError(domain: errorDomain, code: httpResponse.statusCode, userInfo: nil))))
-            return
+            return handleHTTPError(statusCode: httpResponse.statusCode)
         }
         
         guard let data = data else {
-            completion(.failure(.noData))
-            return
+            return .failure(.noData)
         }
         
-        // Attempt to decode the response data into the specified model
+        return decodeResponse(data)
+    }
+    
+    // MARK: - Helper Methods
+    private func handleError<T>(_ error: Error) -> Result<T, NetworkError> {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut:
+                return .failure(.timeout(urlError))
+            case .notConnectedToInternet:
+                return .failure(.noConnection)
+            case .cancelled:
+                return .failure(.cancelled)
+            default:
+                return .failure(.networkFailure(urlError))
+            }
+        }
+        return .failure(.networkFailure(error))
+    }
+    
+    private func handleHTTPError<T>(statusCode: Int) -> Result<T, NetworkError> {
+        switch statusCode {
+        case 400...499:
+            return .failure(.clientError(statusCode: statusCode))
+        case 500...599:
+            return .failure(.serverError(statusCode: statusCode))
+        default:
+            return .failure(.invalidStatusCode(statusCode))
+        }
+    }
+    
+    private func decodeResponse<T: Decodable>(_ data: Data) -> Result<T, NetworkError> {
         do {
-            let decodedResponse = try JSONDecoder().decode(T.self, from: data)
-            completion(.success(decodedResponse))
+            let decoded = try configuration.decoder.decode(T.self, from: data)
+            return .success(decoded)
         } catch {
-            completion(.failure(.decodingError(error)))
+            return .failure(.decodingError(error))
         }
     }
 }
