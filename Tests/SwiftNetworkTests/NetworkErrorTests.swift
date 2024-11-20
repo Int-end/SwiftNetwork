@@ -1,5 +1,5 @@
 //
-//  Endpoint+FailureResponse+NetworkFailure.swift
+//  NetworkErrorTests.swift
 //  SwiftNetwork
 //
 //  Created by Sijo Thomas on 13/11/24.

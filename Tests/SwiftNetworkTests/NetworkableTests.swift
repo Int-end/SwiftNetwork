@@ -1,205 +1,147 @@
+//
+//  NetworkableTests.swift
+//  SwiftNetwork
+//
+//  Created by Sijo Thomas on 13/11/24.
+//
+
 import XCTest
 @testable import SwiftNetwork
 
-class NetworkableTests: XCTestCase {}
+class NetworkableTests: XCTestCase {
+    private let timeout: TimeInterval = 5
+    
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+    }
+    
+    override func tearDownWithError() throws {
+        try super.tearDownWithError()
+    }
+    
+    private func performTest<T: Decodable>(_ mock: Requestable,
+                                         expectation: XCTestExpectation,
+                                         validateSuccess: @escaping (T) -> Void) {
+        mock.perform { (result: Result<T, NetworkError>) in
+            switch result {
+            case .success(let value):
+                validateSuccess(value)
+            case .failure(let error):
+                XCTFail("Expected success but got error: \(error)")
+            }
+            expectation.fulfill()
+        }
+    }
+}
 
-// MARK: - GET
+// MARK: - GET Tests
 extension NetworkableTests {
     func testGETPerformNetworkRequest() {
-        MockGETRequestable()
-            .perform { (result: Result<[Post], NetworkError>) in
-                switch result {
-                case .success(let posts):
-                    // Assert that the post was deleted
-                    XCTAssertGreaterThan(posts.count, 0, "Expected to receive posts.")
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
+        let expectation = expectation(description: "GET request")
+        performTest(MockGETRequestable(), expectation: expectation) { (posts: [Post]) in
+            XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned")
+        }
+        wait(for: [expectation], timeout: timeout)
+    }
+    
+    func testGETSinglePerformNetworkRequest() {
+        let expectation = expectation(description: "GET single request")
+        performTest(MockGETSingleRequestable(), expectation: expectation) { (post: Post) in
+            XCTAssertNotNil(post)
+            XCTAssertEqual(post.id, Mock.TestData.post.id)
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testGETNetworkRequest() {
-        MockGETRequestable()
-            .fetch { (result: Result<[Post], NetworkError>) in
-                switch result {
-                case .success(let posts):
-                    // Assert that the post was deleted
-                    XCTAssertGreaterThan(posts.count, 0, "Expected to receive posts.")
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
-    }
-}
-
-// MARK: - GET Single Post
-extension NetworkableTests {
-    func testGETSinglePerformNetworkRequest() {
-        MockGETSingleRequestable()
-            .perform { (result: Result<Post, NetworkError>) in
-                switch result {
-                case .success(let post):
-                    // Assert that the post was deleted
-                    XCTAssertNotNil(post)
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
+        let expectation = expectation(description: "GET request")
+        performTest(MockGETRequestable(), expectation: expectation) { (posts: [Post]) in
+            XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned")
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testGETSingleNetworkRequest() {
-        MockGETSingleRequestable()
-            .fetch { (result: Result<Post, NetworkError>) in
-                switch result {
-                case .success(let post):
-                    // Assert that the post was deleted
-                    XCTAssertNotNil(post)
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
+        let expectation = expectation(description: "GET single request")
+        performTest(MockGETSingleRequestable(), expectation: expectation) { (post: Post) in
+            XCTAssertNotNil(post)
+            XCTAssertEqual(post.id, Mock.TestData.post.id)
+        }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-// MARK: - POST
+// MARK: - POST Tests
 extension NetworkableTests {
     func testPOSTPerformNetworkRequest() {
-        MockPOSTRequestable()
-            .perform { (result: Result<EmptyResponse, NetworkError>) in
-                switch result {
-                case .success(let empty):
-                    // Assert that the post was deleted
-                    XCTAssertNotNil(empty)
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
+        let expectation = expectation(description: "POST request")
+        performTest(MockPOSTRequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testPOSTNetworkRequest() {
-        MockPOSTRequestable()
-            .sync { (result: Result<EmptyResponse, NetworkError>) in
-                switch result {
-                case .success(let empty):
-                    // Assert that the post was deleted
-                    XCTAssertNotNil(empty)
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
+        let expectation = expectation(description: "POST request")
+        performTest(MockPOSTRequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-// MARK: - PUT
+// MARK: - PUT Tests
 extension NetworkableTests {
     func testPUTPerformNetworkRequest() {
-        MockPUTRequestable()
-            .perform { (result: Result<EmptyResponse, NetworkError>) in
-                switch result {
-                case .success(let empty):
-                    // Assert that the post was deleted
-                    XCTAssertNotNil(empty)
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
+        let expectation = expectation(description: "PUT request")
+        performTest(MockPUTRequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testPUTNetworkRequest() {
-        MockPUTRequestable()
-            .update { (result: Result<EmptyResponse, NetworkError>) in
-                switch result {
-                case .success(let empty):
-                    // Assert that the post was deleted
-                    XCTAssertNotNil(empty)
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
+        let expectation = expectation(description: "PUT request")
+        performTest(MockPUTRequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-
-// MARK: - DELETE
+// MARK: - DELETE Tests
 extension NetworkableTests {
     func testDELETEPerformNetworkRequest() {
-        MockDELETERequestable()
-            .perform { (result: Result<EmptyResponse, NetworkError>) in
-                switch result {
-                case .success(let empty):
-                    // Assert that the post was deleted
-                    XCTAssertNotNil(empty)
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
-            }
+        let expectation = expectation(description: "DELETE request")
+        performTest(MockDELETERequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testDELETENetworkRequest() {
-        MockDELETERequestable()
-            .delete() { (result: Result<EmptyResponse, NetworkError>) in
-                switch result {
-                case .success(let empty):
-                    // Assert that the post was deleted
-                    XCTAssertNotNil(empty)
-                case .failure(let error):
-                    XCTFail("Request failed with error: \(error.description)")
-                }
+        let expectation = expectation(description: "DELETE request")
+        performTest(MockDELETERequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
+    }
+}
+
+// MARK: - Error Tests
+extension NetworkableTests {
+    func testInvalidResponseFormat() {
+        let expectation = expectation(description: "Invalid response format")
+        let mock = MockGETRequestable()
+        
+        mock.perform { (result: Result<Post, NetworkError>) in
+            if case .failure(.decodingError) = result {
+                expectation.fulfill()
+            } else {
+                XCTFail("Expected decodingError but got \(result)")
             }
+        }
+        
+        wait(for: [expectation], timeout: timeout)
     }
 }
-
-enum Mock {
-    // Setup base URL (JSONPlaceholder)
-    static let baseURL = "https://jsonplaceholder.typicode.com"
-    
-    // Setup environment with base URL (JSONPlaceholder)
-    static let environment = TestEnvironment(environment: .init(baseURL: baseURL, apiKey: "API KEY"))
-    
-    enum Path {
-        static let posts = "/posts"
-        static let singlePost = "/posts/1"
-    }
-}
-
-// Define a custom environment with a base URL
-struct TestEnvironment: EnvironmentConfigurable {
-    let baseURL: String
-    let apiKey: String
-    
-    init(environment: Environment) {
-        self.baseURL = environment.baseURL
-        self.apiKey = environment.apiKey
-    }
-}
-
-// Sample Post Model for Decoding (POST request test)
-struct Post: Codable {
-    let userId: Int
-    let id: Int
-    let title: String
-    let body: String
-}
-
-struct EmptyResponse: Decodable {}
-
-class MockGETRequestable: MockGETNetworkable, Requestable {}
-
-class MockGETSingleRequestable: MockGETSingleNetworkable, Requestable {}
-
-class MockPOSTRequestable: MockPOSTNetworkable, Requestable {}
-
-class MockPUTRequestable: MockPUTNetworkable, Requestable {}
-
-class MockDELETERequestable: MockDELETENetworkable,Requestable {}
-
-
-class MockGETNetworkable: MockGETEndpoint, Networkable {}
-
-class MockGETSingleNetworkable: MockGETSingleEndpoint, Networkable {}
-
-class MockPOSTNetworkable: MockPOSTEndpoint, Networkable {}
-
-class MockPUTNetworkable: MockPUTEndpoint, Networkable {}
-
-class MockDELETENetworkable: MockDELETEEndpoint,Networkable {}

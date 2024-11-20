@@ -1,5 +1,5 @@
 //
-//  EndpointTests+DefaultHeaders.swift
+//  SwiftNetworkActorTests.swift
 //  SwiftNetwork
 //
 //  Created by Sijo Thomas on 13/11/24.
@@ -8,119 +8,101 @@
 import XCTest
 @testable import SwiftNetwork
 
-class ActorNetworkTests: XCTestCase {}
+@available(iOS 13.0, macOS 10.15, *)
+class SwiftNetworkActorTests: XCTestCase {
+    private var actor: SwiftNetworkActor!
+    
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        actor = SwiftNetworkActor()
+    }
+    
+    override func tearDownWithError() throws {
+        actor = nil
+        try super.tearDownWithError()
+    }
+    
+    private func performTest<T: Decodable>(_ mock: Endpoint,
+                                         validateSuccess: @escaping (T) -> Void) async {
+        guard let request = mock.request else {
+            XCTFail("Failed to create request")
+            return
+        }
+        
+        let result: Result<T, NetworkError> = await actor.perform(request)
+        switch result {
+        case .success(let value):
+            validateSuccess(value)
+        case .failure(let error):
+            XCTFail("Expected success but got error: \(error)")
+        }
+    }
+}
 
-// MARK: - GET
-extension ActorNetworkTests {
+// MARK: - GET Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension SwiftNetworkActorTests {
     func testGETPerformNetworkRequest() async {
-        let result: Result<[Post], NetworkError> = await MockGETRequestable().perform()
-        switch result {
-        case .success(let posts):
-            XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned.")
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
+        await performTest(MockGETEndpoint()) { (posts: [Post]) in
+            XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned")
         }
     }
     
-    func testGETNetworkRequest() async {
-        let result: Result<[Post], NetworkError> = await MockGETRequestable().fetch()
-        switch result {
-        case .success(let posts):
-            XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned.")
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
-        }
-    }
-}
-
-// MARK: - GET Single Post
-extension ActorNetworkTests {
     func testGETSinglePerformNetworkRequest() async {
-        let result: Result<Post, NetworkError> = await MockGETSingleRequestable().perform()
-        switch result {
-        case .success(let post):
+        await performTest(MockGETSingleEndpoint()) { (post: Post) in
             XCTAssertNotNil(post)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
-        }
-    }
-    
-    func testGETSingleNetworkRequest() async {
-        let result: Result<Post, NetworkError> = await MockGETSingleRequestable().fetch()
-        switch result {
-        case .success(let (post)):
-            XCTAssertNotNil(post)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
+            XCTAssertEqual(post.id, 1)
         }
     }
 }
 
-// MARK: - POST
-extension ActorNetworkTests {
+// MARK: - POST Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension SwiftNetworkActorTests {
     func testPOSTPerformNetworkRequest() async {
-        let result: Result<EmptyResponse, NetworkError> = await MockPOSTRequestable().perform()
-        switch result {
-        case .success(let empty):
-            XCTAssertNotNil(empty)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
-        }
-    }
-    
-    func testPOSTNetworkRequest() async {
-        let result: Result<EmptyResponse, NetworkError> = await MockPOSTRequestable().fetch()
-        switch result {
-        case .success(let empty):
-            XCTAssertNotNil(empty)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
+        await performTest(MockPOSTEndpoint()) { (_: EmptyResponse) in
+            // Success case
         }
     }
 }
 
-// MARK: - PUT
-extension ActorNetworkTests {
+// MARK: - PUT Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension SwiftNetworkActorTests {
     func testPUTPerformNetworkRequest() async {
-        let result: Result<EmptyResponse, NetworkError> = await MockPUTRequestable().perform()
-        switch result {
-        case .success(let empty):
-            XCTAssertNotNil(empty)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
-        }
-    }
-    
-    func testPUTNetworkRequest() async {
-        let result: Result<EmptyResponse, NetworkError> = await MockPUTRequestable().update()
-        switch result {
-        case .success(let empty):
-            XCTAssertNotNil(empty)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
+        await performTest(MockPUTEndpoint()) { (_: EmptyResponse) in
+            // Success case
         }
     }
 }
 
-// MARK: - DELETE
-extension ActorNetworkTests {
+// MARK: - DELETE Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension SwiftNetworkActorTests {
     func testDELETEPerformNetworkRequest() async {
-        let result: Result<EmptyResponse, NetworkError> = await MockDELETERequestable().perform()
-        switch result {
-        case .success(let empty):
-            XCTAssertNotNil(empty)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
+        await performTest(MockDELETEEndpoint()) { (_: EmptyResponse) in
+            // Success case
         }
     }
-    
-    func testDELETENetworkRequest() async {
-        let result: Result<EmptyResponse, NetworkError> = await MockDELETERequestable().delete()
-        switch result {
-        case .success(let empty):
-            XCTAssertNotNil(empty)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
+}
+
+// MARK: - Error Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension SwiftNetworkActorTests {
+    func testInvalidResponseFormat() async {
+        let mock = MockGETEndpoint()
+        
+        guard let request = mock.request else {
+            XCTFail("Failed to create request")
+            return
+        }
+        
+        let result: Result<Post, NetworkError> = await actor.perform(request)
+        if case .failure(.decodingError) = result {
+            // Expected error
+            return
+        } else {
+            XCTFail("Expected decodingError but got \(result)")
         }
     }
 }

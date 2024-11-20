@@ -237,6 +237,38 @@ You can find the full documentation for this framework [here](https://github.com
 5. Push to the branch (`git push origin feature/YourFeature`).
 6. Create a new Pull Request.
 
+## Testing Guidelines
+
+The test suite follows specific rules for using mock objects to ensure clear separation of concerns:
+
+### Mock Object Usage Rules
+
+1. Use `MockRequestable` classes for testing protocol extensions:
+   - NetworkableCombineTests (testing Combine extensions)
+   - NetworkableTests (testing protocol extensions)
+   ```swift
+   let mock = MockGETRequestable()
+   let mock = MockPOSTRequestable()
+   ```
+
+2. Use `MockEndpoint` classes for testing concrete implementations:
+   - SwiftNetworkTests (testing base network layer)
+   - SwiftNetworkActorTests (testing actor network layer)
+   ```swift
+   let mock = MockGETEndpoint()
+   let mock = MockPOSTEndpoint()
+   ```
+
+This separation helps maintain clear boundaries:
+- MockRequestable for testing protocol-level functionality
+- MockEndpoint for testing concrete implementation functionality
+
+### Test Organization
+- Tests are grouped by HTTP method (GET, POST, PUT, DELETE)
+- Each group includes both perform() and convenience method tests
+- Error cases are grouped separately
+- Consistent naming conventions across all test files
+
 ## License
 
 SwiftNetwork is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.

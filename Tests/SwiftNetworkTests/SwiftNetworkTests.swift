@@ -9,101 +9,116 @@ import XCTest
 @testable import SwiftNetwork
 
 class SwiftNetworkTests: XCTestCase {
-    fileprivate func build(from mock: Requestable, completion: @escaping (URLRequest) -> Void) {
-        switch mock.buildRequest {
-        case .success(let request): completion(request)
-        case .failure(let error):
-            XCTFail("Request failed with error: \(error.description)")
+    private var network: SwiftNetwork!
+    private let timeout: TimeInterval = 5
+    
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        network = SwiftNetwork()
+    }
+    
+    override func tearDownWithError() throws {
+        network = nil
+        try super.tearDownWithError()
+    }
+    
+    private func performTest<T: Decodable>(_ mock: Endpoint,
+                                         expectation: XCTestExpectation,
+                                         validateSuccess: @escaping (T) -> Void) {
+        guard let request = mock.request else {
+            XCTFail("Failed to create request")
+            return
+        }
+        
+        network.perform(request) { (result: Result<T, NetworkError>) in
+            switch result {
+            case .success(let value):
+                validateSuccess(value)
+            case .failure(let error):
+                XCTFail("Expected success but got error: \(error)")
+            }
+            expectation.fulfill()
         }
     }
 }
 
-// MARK: - GET
+// MARK: - GET Tests
 extension SwiftNetworkTests {
     func testGETPerformNetworkRequest() {
-        build(from: MockGETRequestable()) { request in
-            SwiftNetwork()
-                .perform(request) { (result: Result<[Post], NetworkError>) in
-                    switch result {
-                    case .success(let posts):
-                        // Assert that the post was deleted
-                        XCTAssertGreaterThan(posts.count, 0, "Expected to receive posts.")
-                    case .failure(let error):
-                        XCTFail("Request failed with error: \(error.description)")
-                    }
-                }
+        let expectation = expectation(description: "GET request")
+        performTest(MockGETEndpoint(), expectation: expectation) { (posts: [Post]) in
+            XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned")
         }
+        wait(for: [expectation], timeout: timeout)
     }
-}
-
-// MARK: - GET Single Post
-extension SwiftNetworkTests {
+    
     func testGETSinglePerformNetworkRequest() {
-        build(from: MockGETSingleRequestable()) { request in
-            SwiftNetwork()
-                .perform(request) { (result: Result<Post, NetworkError>) in
-                    switch result {
-                    case .success(let post):
-                        // Assert that the post was deleted
-                        XCTAssertNotNil(post)
-                    case .failure(let error):
-                        XCTFail("Request failed with error: \(error.description)")
-                    }
-                }
+        let expectation = expectation(description: "GET single request")
+        performTest(MockGETSingleEndpoint(), expectation: expectation) { (post: Post) in
+            XCTAssertNotNil(post)
+            XCTAssertEqual(post.id, 1)
         }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-// MARK: - POST
+// MARK: - POST Tests
 extension SwiftNetworkTests {
     func testPOSTPerformNetworkRequest() {
-        build(from: MockPOSTRequestable()) { request in
-            SwiftNetwork()
-                .perform(request) { (result: Result<EmptyResponse, NetworkError>) in
-                    switch result {
-                    case .success(let empty):
-                        // Assert that the post was deleted
-                        XCTAssertNotNil(empty)
-                    case .failure(let error):
-                        XCTFail("Request failed with error: \(error.description)")
-                    }
-                }
+        let expectation = expectation(description: "POST request")
+        performTest(MockPOSTEndpoint(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
         }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-// MARK: - PUT
+// MARK: - PUT Tests
 extension SwiftNetworkTests {
     func testPUTPerformNetworkRequest() {
-        build(from: MockPUTRequestable()) { request in
-            SwiftNetwork()
-                .perform(request) { (result: Result<EmptyResponse, NetworkError>) in
-                    switch result {
-                    case .success(let empty):
-                        // Assert that the post was deleted
-                        XCTAssertNotNil(empty)
-                    case .failure(let error):
-                        XCTFail("Request failed with error: \(error.description)")
-                    }
-                }
+        let expectation = expectation(description: "PUT request")
+        performTest(MockPUTEndpoint(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
         }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-// MARK: - DELETE
+// MARK: - DELETE Tests
 extension SwiftNetworkTests {
     func testDELETEPerformNetworkRequest() {
-        build(from: MockDELETERequestable()) { request in
-            SwiftNetwork()
-                .perform(request) { (result: Result<EmptyResponse, NetworkError>) in
-                    switch result {
-                    case .success(let empty):
-                        // Assert that the post was deleted
-                        XCTAssertNotNil(empty)
-                    case .failure(let error):
-                        XCTFail("Request failed with error: \(error.description)")
-                    }
-                }
+        let expectation = expectation(description: "DELETE request")
+        performTest(MockDELETEEndpoint(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
         }
+        wait(for: [expectation], timeout: timeout)
+    }
+}
+
+// MARK: - Error Tests
+extension SwiftNetworkTests {
+    func testInvalidResponseFormat() {
+        let expectation = expectation(description: "Invalid response format")
+        let mock = MockGETEndpoint()
+        
+        guard let request = mock.request else {
+            XCTFail("Failed to create request")
+            return
+        }
+        
+        network.perform(request) { (result: Result<Post, NetworkError>) in
+            switch result {
+            case .success:
+                XCTFail("Expected failure but got success")
+            case .failure(let error):
+                if case .decodingError = error {
+                    expectation.fulfill()
+                } else {
+                    XCTFail("Expected decodingError but got \(error)")
+                }
+            }
+        }
+        
+        wait(for: [expectation], timeout: timeout)
     }
 }

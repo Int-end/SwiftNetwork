@@ -1,5 +1,5 @@
 //
-//  EndpointTests+BuildURL.swift
+//  NetworkableCombineTests.swift
 //  SwiftNetwork
 //
 //  Created by Sijo Thomas on 13/11/24.
@@ -9,192 +9,162 @@ import XCTest
 import Combine
 @testable import SwiftNetwork
 
-class CombineNetworkTests: XCTestCase {
+@available(iOS 13.0, macOS 10.15, *)
+class NetworkableCombineTests: XCTestCase {
+    private var cancellables: Set<AnyCancellable>!
+    private let timeout: TimeInterval = 5
     
-    var cancellables = Set<AnyCancellable>()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        cancellables = Set<AnyCancellable>()
+    }
+    
+    override func tearDownWithError() throws {
+        cancellables = nil
+        try super.tearDownWithError()
+    }
+    
+    private func performTest<T: Decodable>(_ mock: Requestable,
+                                         expectation: XCTestExpectation,
+                                         validateSuccess: @escaping (T) -> Void) {
+        mock.perform()
+            .sink(receiveCompletion: handleCompletion(expectation),
+                 receiveValue: validateSuccess)
+            .store(in: &cancellables)
+    }
 }
 
-// MARK: - GET
-extension CombineNetworkTests {
+// MARK: - GET Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension NetworkableCombineTests {
     func testGETPerformNetworkRequest() {
-        // Perform the network request with Combine
-        MockGETRequestable()
-            .perform()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (posts: [Post]) in
-                XCTAssertGreaterThan(posts.count, 0, "Expected to receive posts.")
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "GET request")
+        performTest(MockGETRequestable(), expectation: expectation) { (posts: [Post]) in
+            XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned")
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testGETNetworkRequest() {
-        // Perform the network request with Combine
-        MockGETRequestable()
-            .fetch()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (posts: [Post]) in
-                XCTAssertGreaterThan(posts.count, 0, "Expected to receive posts.")
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "GET request")
+        performTest(MockGETRequestable(), expectation: expectation) { (posts: [Post]) in
+            XCTAssertGreaterThan(posts.count, 0, "Expected posts to be returned")
+        }
+        wait(for: [expectation], timeout: timeout)
     }
-}
-
-// MARK: - GET Single Post
-extension CombineNetworkTests {
+    
     func testGETSinglePerformNetworkRequest() {
-        // Perform the network request with Combine
-        MockGETSingleRequestable()
-            .perform()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (post: Post) in
-                XCTAssertNotNil(post)
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "GET single request")
+        performTest(MockGETSingleRequestable(), expectation: expectation) { (post: Post) in
+            XCTAssertNotNil(post)
+            XCTAssertEqual(post.id, Mock.TestData.post.id)
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testGETSingleNetworkRequest() {
-        // Perform the network request with Combine
-        MockGETSingleRequestable()
-            .fetch()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (post: Post) in
-                XCTAssertNotNil(post)
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "GET single request")
+        performTest(MockGETSingleRequestable(), expectation: expectation) { (post: Post) in
+            XCTAssertNotNil(post)
+            XCTAssertEqual(post.id, Mock.TestData.post.id)
+        }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-// MARK: - POST
-extension CombineNetworkTests {
+// MARK: - POST Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension NetworkableCombineTests {
     func testPOSTPerformNetworkRequest() {
-        // Perform the network request with Combine
-        MockPOSTRequestable()
-            .perform()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (empty: EmptyResponse) in
-                XCTAssertNotNil(empty)
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "POST request")
+        performTest(MockPOSTRequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testPOSTNetworkRequest() {
-        // Perform the network request with Combine
-        MockPOSTRequestable()
-            .sync()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (empty: EmptyResponse) in
-                XCTAssertNotNil(empty)
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "POST request")
+        performTest(MockPOSTRequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-// MARK: - PUT
-extension CombineNetworkTests {
+// MARK: - PUT Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension NetworkableCombineTests {
     func testPUTPerformNetworkRequest() {
-        // Perform the network request with Combine
-        MockPUTRequestable()
-            .perform()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (empty: EmptyResponse) in
-                XCTAssertNotNil(empty)
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "PUT request")
+        performTest(MockPUTRequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testPUTNetworkRequest() {
-        // Perform the network request with Combine
-        MockPUTRequestable()
-            .update()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (empty: EmptyResponse) in
-                XCTAssertNotNil(empty)
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "PUT request")
+        performTest(MockPUTRequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
 }
 
-// MARK: - DELETE
-extension CombineNetworkTests {
+// MARK: - DELETE Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension NetworkableCombineTests {
     func testDELETEPerformNetworkRequest() {
-        // Perform the network request with Combine
-        MockDELETERequestable()
-            .perform()
-            .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
-                }
-            } receiveValue: { (empty: EmptyResponse) in
-                XCTAssertNotNil(empty)
-            }
-            .store(in: &cancellables)
+        let expectation = expectation(description: "DELETE request")
+        performTest(MockDELETERequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
     }
     
     func testDELETENetworkRequest() {
-        // Perform the network request with Combine
-        MockDELETERequestable()
-            .delete()
+        let expectation = expectation(description: "DELETE request")
+        performTest(MockDELETERequestable(), expectation: expectation) { (_: EmptyResponse) in
+            // Success case
+        }
+        wait(for: [expectation], timeout: timeout)
+    }
+}
+
+// MARK: - Error Tests
+@available(iOS 13.0, macOS 10.15, *)
+extension NetworkableCombineTests {
+    func testInvalidResponseFormat() {
+        let expectation = expectation(description: "Invalid response format")
+        let mock = MockGETRequestable()
+        
+        mock.perform()
             .sink { completion in
-                switch completion {
-                case .failure(let error):
-                    XCTFail("Network request failed with error: \(error.description)")
-                case .finished:
-                    break
+                if case .failure(.decodingError) = completion {
+                    expectation.fulfill()
                 }
-            } receiveValue: { (empty: EmptyResponse) in
-                XCTAssertNotNil(empty)
+            } receiveValue: { (post: Post) in
+                XCTFail("Expected error but got success")
             }
             .store(in: &cancellables)
+        
+        wait(for: [expectation], timeout: timeout)
+    }
+}
+
+// MARK: - Helpers
+@available(iOS 13.0, macOS 10.15, *)
+private extension NetworkableCombineTests {
+    func handleCompletion(_ expectation: XCTestExpectation) -> ((Subscribers.Completion<NetworkError>) -> Void) {
+        return { completion in
+            switch completion {
+            case .finished:
+                break
+            case .failure(let error):
+                XCTFail("Expected success but got error: \(error)")
+            }
+            expectation.fulfill()
+        }
     }
 }

@@ -9,9 +9,40 @@ import XCTest
 @testable import SwiftNetwork
 
 class EnvironmentTests: XCTestCase {
-    func testEnvironment() {
-        // Ensure the environment has the correct base URL
-        XCTAssertEqual(Mock.environment.baseURL, Mock.baseURL)
-        XCTAssertEqual(Mock.environment.apiKey, "API KEY")
+    private var environment: Environment!
+    private var testEnvironment: TestEnvironment!
+    
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        environment = Environment(baseURL: Mock.baseURL, apiKey: "API KEY")
+        testEnvironment = TestEnvironment(environment: .init(baseURL: Mock.baseURL, apiKey: "API KEY"))
+    }
+    
+    override func tearDownWithError() throws {
+        environment = nil
+        testEnvironment = nil
+        try super.tearDownWithError()
+    }
+}
+
+// MARK: - Base Environment Tests
+extension EnvironmentTests {
+    func testEnvironmentBaseURL() {
+        XCTAssertEqual(environment.baseURL, Mock.baseURL)
+    }
+    
+    func testEnvironmentAPIKey() {
+        XCTAssertEqual(environment.apiKey, "API KEY")
+    }
+}
+
+// MARK: - Test Environment Tests
+extension EnvironmentTests {
+    func testTestEnvironmentBaseURL() {
+        XCTAssertEqual(testEnvironment.baseURL, Mock.baseURL)
+    }
+    
+    func testTestEnvironmentAPIKey() {
+        XCTAssertEqual(testEnvironment.apiKey, "API KEY")
     }
 }
