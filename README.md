@@ -105,7 +105,7 @@ endpoint.perform()
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Int-end/SwiftNetwork.git", from: "0.0.2")
+    .package(url: "https://github.com/Int-end/SwiftNetwork.git", from: "0.0.3")
 ]
 ```
 
